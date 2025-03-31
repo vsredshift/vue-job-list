@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.qodo
+
+_theme_files
+
