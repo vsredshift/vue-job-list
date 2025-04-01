@@ -8,7 +8,7 @@ const fullName = ref("")
 const email = ref("")
 const password = ref("")
 const confirmPassword = ref("")
-const userType = ref("developer")
+const role = ref("developer")
 
 const companyName = ref("")
 const selectedCompany = ref(null)
@@ -27,7 +27,7 @@ const router = useRouter()
 
 const mockCompanies = ["Company A", "Company B", "Company C"]
 
-watch(userType, (newType) => {
+watch(role, (newType) => {
     if (newType === "developer") {
         selectedCompany.value = null
         companyExists.value = false
@@ -65,7 +65,7 @@ const validateForm = () => {
         errorMessage.value = "Password must be at least 6 characters long.";
     } else if (password.value !== confirmPassword.value) {
         errorMessage.value = "Passwords do not match.";
-    } else if (userType.value === 'recruiter' && !companyName.value.trim()) {
+    } else if (role.value === 'recruiter' && !companyName.value.trim()) {
         errorMessage.value = "Company Name is required for recruiters.";
     }
     return !errorMessage.value;
@@ -73,7 +73,7 @@ const validateForm = () => {
 
 const handleSubmit = () => {
     if (validateForm()) {
-        user.register(email.value, password.value, fullName.value, userType.value)
+        user.register(email.value, password.value, fullName.value, role.value)
     } else {
         toast.error(errorMessage.value)
     }
@@ -92,8 +92,8 @@ const handleSubmit = () => {
                             class="border rounded w-full py-2 px-3 mb-2" required>
                     </div>
                     <div class="mb-4">
-                        <label for="userType" class="block text-gray-700 font-bold mb-2">Role</label>
-                        <select v-model="userType" id="userType" name="userType" class="border rounded w-full py-2 px-3"
+                        <label for="role" class="block text-gray-700 font-bold mb-2">Role</label>
+                        <select v-model="role" id="role" name="role" class="border rounded w-full py-2 px-3"
                             required>
                             <option value="developer">Developer</option>
                             <option value="recruiter">Recruiter</option>
@@ -102,7 +102,7 @@ const handleSubmit = () => {
 
 
                     <!-- Recruiter-specific fields -->
-                    <div v-if="userType === 'recruiter'" class="mb-4">
+                    <div v-if="role === 'recruiter'" class="mb-4">
                         <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
                         <input v-model="companyName" type="text" name="company" id="company" placeholder="Company"
                             class="border rounded w-full py-2 px-3 mb-2" required>
@@ -120,7 +120,7 @@ const handleSubmit = () => {
                     </div>
 
                     <!-- Additional fields for new company registration -->
-                    <div v-if="userType === 'recruiter' && isCompanyRegistered" class="mb-4">
+                    <div v-if="role === 'recruiter' && isCompanyRegistered" class="mb-4">
                         <label for="companyDescription" class="block text-gray-700 font-bold mb-2">Company
                             Description</label>
                         <textarea v-model="companyDescription" id="companyDescription"

@@ -1,11 +1,17 @@
 <script setup>
 import { RouterLink, useRoute } from "vue-router";
 import logo from "@/assets/img/logo.png"
+import { user } from "@/lib/stores/user";
+import { computed } from "vue";
 
 const isActiveLink = (routePath) => {
     const route = useRoute();
     return route.path === routePath;
 }
+
+const isAdmin = computed(() => user.current?.prefs.role === "admin");
+const isDeveloper = computed(() => user.current?.prefs.role === "developer");
+const isEmployer = computed(() => user.current?.prefs.role === "employer");
 </script>
 
 <template>
@@ -18,6 +24,12 @@ const isActiveLink = (routePath) => {
                         <img class="h-10 w-auto" :src="logo" alt="Vue Jobs" />
                         <span class="hidden md:block text-white text-2xl font-bold ml-4">VSR Jobs</span>
                     </RouterLink>
+                    <template v-if="user.current">
+                        <div class="flex gap-1 items-center text-white ml-2">
+                            <span>Logged in as </span>
+                            <span>{{ user.current.name || user.current.email }}</span>
+                        </div>
+                    </template>
                     <div class="md:ml-auto">
                         <div class="flex space-x-2">
                             <RouterLink to="/" :class="[isActiveLink('/')
@@ -33,13 +45,26 @@ const isActiveLink = (routePath) => {
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Jobs
                             </RouterLink>
-                            <RouterLink to="/jobs/add"
-                            :class="[isActiveLink('/jobs/add')
+                            <RouterLink v-if="isEmployer || isAdmin" to="/jobs/add" :class="[isActiveLink('/jobs/add')
                                 ? 'bg-green-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Add Job
+                            </RouterLink>
+                            <RouterLink v-if="user.current" to="/" :class="[isActiveLink('/logout')
+                                ? 'bg-green-900'
+                                : 'hover:bg-gray-900 hover:text-white',
+                                'text-white',
+                                'px-3', 'py-2', 'rounded-md'
+                            ]"><button @click="user.logout">Logout</button>
+                            </RouterLink>
+                            <RouterLink v-else to="/login" :class="[isActiveLink('/login')
+                                ? 'bg-green-900'
+                                : 'hover:bg-gray-900 hover:text-white',
+                                'text-white',
+                                'px-3', 'py-2', 'rounded-md'
+                            ]">Login
                             </RouterLink>
                         </div>
                     </div>
