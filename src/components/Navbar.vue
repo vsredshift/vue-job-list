@@ -15,7 +15,7 @@ const isEmployer = computed(() => user.current?.prefs.role === "employer");
 </script>
 
 <template>
-    <nav class="bg-green-700 border-b border-green-500">
+    <nav class="bg-emerald-700 border-b border-emerald-500">
         <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div class="flex h-20 items-center justify-between">
                 <div class="flex flex-1 items-center justify-center md:items-stretch md:justify-start">
@@ -25,7 +25,7 @@ const isEmployer = computed(() => user.current?.prefs.role === "employer");
                         <span class="hidden md:block text-white text-2xl font-bold ml-4">VSR Jobs</span>
                     </RouterLink>
                     <template v-if="user.current">
-                        <div class="flex gap-1 items-center text-white ml-2">
+                        <div class="hidden md:flex gap-1 items-center text-white ml-2">
                             <span>Logged in as </span>
                             <span>{{ user.current.name || user.current.email }}</span>
                         </div>
@@ -33,34 +33,34 @@ const isEmployer = computed(() => user.current?.prefs.role === "employer");
                     <div class="md:ml-auto">
                         <div class="flex space-x-2">
                             <RouterLink to="/" :class="[isActiveLink('/')
-                                ? 'bg-green-900'
+                                ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Home</RouterLink>
                             <RouterLink to="/jobs" :class="[isActiveLink('/jobs')
-                                ? 'bg-green-900'
+                                ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Jobs
                             </RouterLink>
                             <RouterLink v-if="isEmployer || isAdmin" to="/jobs/add" :class="[isActiveLink('/jobs/add')
-                                ? 'bg-green-900'
+                                ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Add Job
                             </RouterLink>
                             <RouterLink v-if="user.current" to="/" :class="[isActiveLink('/logout')
-                                ? 'bg-green-900'
+                                ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'
                             ]"><button @click="user.logout">Logout</button>
                             </RouterLink>
                             <RouterLink v-else to="/login" :class="[isActiveLink('/login')
-                                ? 'bg-green-900'
+                                ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',
                                 'text-white',
                                 'px-3', 'py-2', 'rounded-md'

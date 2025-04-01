@@ -81,7 +81,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-    <section class="bg-green-50">
+    <section class="bg-emerald-50">
         <div class="container m-auto max-w-2xl py-24">
             <div class="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
                 <form @submit.prevent="handleSubmit">
@@ -109,13 +109,13 @@ const handleSubmit = () => {
                         <p v-if="isLoading" class="text-gray-500 text-sm">Checking company...</p>
                         <p v-if="companyErrorMessage" class="text-red-500 text-sm">{{ companyErrorMessage }}</p>
                         <div v-if="companyExists">
-                            <p class="text-green-500 text-sm">{{ companyName }} found</p>
+                            <p class=" text-emerald-500 text-sm">{{ companyName }} found</p>
                         </div>
                         <div v-if="!companyExists && !isLoading">
                             <button @click="checkCompanyExists" type="button"
                                 class="bg-blue-500 text-white py-2 px-4 rounded-md mr-2">Fetch Company</button>
                             <button @click="registerNewCompany" type="button"
-                                class="bg-green-500 text-white py-2 px-4 rounded-md">Register New Company</button>
+                                class="bg-emerald-500 text-white py-2 px-4 rounded-md">Register New Company</button>
                         </div>
                     </div>
 
@@ -151,7 +151,7 @@ const handleSubmit = () => {
                     </div>
                     <div>
                         <button
-                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline"
+                            class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline"
                             type="submit">
                             Register
                         </button>

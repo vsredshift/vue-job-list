@@ -19,7 +19,7 @@ const company = ref({})
 const isLoading = ref(true)
 
 const isAdmin = computed(() => user.current?.prefs.role === "admin");
-const isPoster = computed(() => user.current?.prefs.company === company.value.$id);
+const isPoster = computed(() => company.value.users.includes(user.current?.$id));
 
 const deleteJob = async () => {
     try {
@@ -40,7 +40,6 @@ onMounted(async () => {
     try {
         job.value = await jobs.findOne(jobId)
         company.value = await companies.findOne(job.value.company)
-        console.log(company.value)
     } catch (error) {
         console.error("Error getting job", error)
     } finally {
@@ -51,21 +50,21 @@ onMounted(async () => {
 
 <template>
     <BackButton />
-    <section v-if="!isLoading" class="bg-green-50">
+    <section v-if="!isLoading" class="bg-emerald-50">
         <div class="container m-auto py-10 px-6">
             <div class="grid grid-cols-1 md:grid-cols-70/30 w-full gap-6">
                 <main>
                     <div class="bg-white p-6 rounded-lg shadow-md text-center md:text-left">
                         <div class="text-gray-500 mb-4">{{ job.type }}</div>
                         <h1 class="text-3xl font-bold mb-4">{{ job.title }}</h1>
-                        <div class="text-gray-500 mb-4 flex align-middle justify-center md:justify-start">
-                            <i class="pi pi-map-marker text-orange-700 mr-2"></i>
-                            <p class="text-orange-700">{{ job.location }}</p>
+                        <div class="text-amber-500 mb-4 flex align-middle justify-center md:justify-start">
+                            <i class="pi pi-map-marker text-amber-700 mr-2"></i>
+                            <p class=" text-amber-700">{{ job.location }}</p>
                         </div>
                     </div>
 
                     <div class="bg-white p-6 rounded-lg shadow-md mt-6">
-                        <h3 class="text-green-800 text-lg font-bold mb-6">
+                        <h3 class=" text-emerald-800 text-lg font-bold mb-6">
                             Job Description
                         </h3>
 
@@ -73,7 +72,7 @@ onMounted(async () => {
                             {{ job.description }}
                         </p>
 
-                        <h3 class="text-green-800 text-lg font-bold mb-2">Salary</h3>
+                        <h3 class=" text-emerald-800 text-lg font-bold mb-2">Salary</h3>
 
                         <p class="mb-4">{{ job.salary }} / Year</p>
                     </div>
@@ -95,20 +94,20 @@ onMounted(async () => {
 
                         <h3 class="text-xl">Contact Email:</h3>
 
-                        <p class="my-2 bg-green-100 p-2 font-bold">
+                        <p class="my-2 bg-emerald-100 p-2 font-bold">
                             {{ company.contactEmail }}
                         </p>
 
                         <h3 class="text-xl">Contact Phone:</h3>
 
-                        <p class="my-2 bg-green-100 p-2 font-bold">{{ company.contactPhone }}</p>
+                        <p class="my-2 bg-emerald-100 p-2 font-bold">{{ company.contactPhone }}</p>
                     </div>
 
                     <!-- Manage -->
                     <div v-if="isAdmin || isPoster" class="bg-white p-6 rounded-lg shadow-md mt-6">
                         <h3 class="text-xl font-bold mb-6">Manage Job</h3>
                         <RouterLink :to="`/jobs/edit/${jobId}`"
-                            class="bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
+                            class="bg-emerald-500 hover:bg-emerald-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
                             Edit
                             Job</RouterLink>
                         <button @click="deleteJob"
