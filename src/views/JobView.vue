@@ -1,25 +1,31 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue';
 import BackButton from '@/components/BackButton.vue';
 import { useToast } from 'vue-toastification';
+import { jobs } from '@/lib/stores/jobs';
+import { companies } from '@/lib/stores/companies';
+import { user } from '@/lib/stores/user';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 
 const jobId = route.params.id;
-
 const job = ref({})
+const company = ref({})
+
 const isLoading = ref(true)
+
+const isAdmin = computed(() => user.current?.prefs.role === "admin");
+const isPoster = computed(() => user.current?.prefs.company === company.value.$id);
 
 const deleteJob = async () => {
     try {
         const confirm = window.confirm("Are you sure you want to delete this job listing?")
         if (confirm) {
-            await axios.delete(`/api/jobs/${jobId}`)
+            await jobs.remove(jobId)
             toast.success("Job deleted")
             router.push("/jobs")
         }
@@ -32,8 +38,9 @@ const deleteJob = async () => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get(`/api/jobs/${jobId}`)
-        job.value = response.data
+        job.value = await jobs.findOne(jobId)
+        company.value = await companies.findOne(job.value.company)
+        console.log(company.value)
     } catch (error) {
         console.error("Error getting job", error)
     } finally {
@@ -78,10 +85,10 @@ onMounted(async () => {
                     <div class="bg-white p-6 rounded-lg shadow-md">
                         <h3 class="text-xl font-bold mb-6">Company Info</h3>
 
-                        <h2 class="text-2xl">{{ job.company.name }}</h2>
+                        <h2 class="text-2xl">{{ company.name }}</h2>
 
                         <p class="my-2">
-                            {{ job.company.description }}
+                            {{ company.description }}
                         </p>
 
                         <hr class="my-4" />
@@ -89,16 +96,16 @@ onMounted(async () => {
                         <h3 class="text-xl">Contact Email:</h3>
 
                         <p class="my-2 bg-green-100 p-2 font-bold">
-                            {{ job.company.contactEmail }}
+                            {{ company.contactEmail }}
                         </p>
 
                         <h3 class="text-xl">Contact Phone:</h3>
 
-                        <p class="my-2 bg-green-100 p-2 font-bold">{{ job.company.contactPhone }}</p>
+                        <p class="my-2 bg-green-100 p-2 font-bold">{{ company.contactPhone }}</p>
                     </div>
 
                     <!-- Manage -->
-                    <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+                    <div v-if="isAdmin || isPoster" class="bg-white p-6 rounded-lg shadow-md mt-6">
                         <h3 class="text-xl font-bold mb-6">Manage Job</h3>
                         <RouterLink :to="`/jobs/edit/${jobId}`"
                             class="bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">

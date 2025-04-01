@@ -15,6 +15,10 @@ export const companies = reactive({
         )
         this.current = response.documents
     },
+    async findOne(id) {
+      const response = await databases.getDocument(JOBS_DATABASE_ID, COMPANIES_COLLECTION_ID, id)
+      return response
+    },
     async add(company) {
         const response = await databases.createDocument(
             JOBS_DATABASE_ID,
