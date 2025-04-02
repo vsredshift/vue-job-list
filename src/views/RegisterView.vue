@@ -157,6 +157,13 @@ const handleSubmit = () => {
                         </button>
                     </div>
                 </form>
+
+                <p class="mt-3">
+                Already have an account?
+                <RouterLink to="/login" class="text-blue-500">
+                  Login
+                </RouterLink>
+              </p>
             </div>
         </div>
     </section>

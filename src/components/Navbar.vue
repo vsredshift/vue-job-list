@@ -26,7 +26,6 @@ const isEmployer = computed(() => user.current?.prefs.role === "employer");
                     </RouterLink>
                     <template v-if="user.current">
                         <div class="hidden md:flex gap-1 items-center text-white ml-2">
-                            <span>Logged in as </span>
                             <span>{{ user.current.name || user.current.email }}</span>
                         </div>
                     </template>

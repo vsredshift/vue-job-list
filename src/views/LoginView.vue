@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { user } from '@/lib/stores/user';
+import { RouterLink } from 'vue-router';
 
 const email = ref("")
 const password = ref("")
@@ -32,6 +33,13 @@ const password = ref("")
                         </button>
                     </div>
                 </form>
+                
+                <p class="mt-3">
+                Don't have an account?
+                <RouterLink to="/register" class="text-blue-500">
+                  Register
+                </RouterLink>
+              </p>
             </div>
         </div>
     </section>

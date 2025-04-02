@@ -7,6 +7,8 @@ import AddJobView from "@/views/AddJobView.vue";
 import EditJobView from "@/views/EditJobView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import LoginView from "@/views/LoginView.vue";
+import { account } from "@/lib/appwrite";
+import UnauthorizedView from "@/views/UnauthorizedView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +37,7 @@ const router = createRouter({
       path: "/jobs/add",
       name: "add-job",
       component: AddJobView,
+      meta: { requiredAuth: true, allowedRoles: ["employer", "admin"]}
     },
     {
       path: "/jobs/:id",
@@ -47,11 +50,35 @@ const router = createRouter({
       component: EditJobView,
     },
     {
+      path: "/not-authorised",
+      name: "unauthorised",
+      component: UnauthorizedView,
+    },
+    {
       path: "/:catchAll(.*)",
       name: "not-found",
       component: NotFoundView,
     },
   ],
 });
+
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiredAuth) {
+    try {
+      const session = await account.get()
+      const userRole = session.prefs.role
+
+      if (to.meta.allowedRoles.includes(userRole)) {
+        next()
+      } else {
+        next("/not-authorised")
+      }
+    } catch (error) {
+      next("/login")
+    }
+  } else {
+    next()
+  }
+})
 
 export default router;
