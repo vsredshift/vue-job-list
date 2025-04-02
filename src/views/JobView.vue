@@ -37,15 +37,29 @@ const deleteJob = async () => {
 }
 
 const handleSaveJob = async (job) => {
-  if (!user.current) {
-    console.error("User not logged in");
-    return;
-  }
-  const updatedSavedBy = job.savedBy ? [...new Set([...job.savedBy, user.current.$id])] : [user.current.$id];
+    if (!user.current) {
+        console.error("User not logged in");
+        return;
+    }
+    const updatedSavedBy = job.savedBy ? [...new Set([...job.savedBy, user.current.$id])] : [user.current.$id];
 
-  jobs.update(jobId, { savedBy: updatedSavedBy });
-  toast.success("Job saved")
+    await jobs.update(jobId, { savedBy: updatedSavedBy });
+    toast.success("Job saved")
+    router.push(`/jobs/user/${user.current.$id}`)
 };
+
+const removeJobFromSaved = async (job) => {
+    if (!job.savedBy || !job.savedBy.includes(user.current.$id)) {
+        console.warn("Job is not saved by this user");
+        return;
+    }
+
+    const updatedSavedBy = job.savedBy.filter(id => id !== user.current.$id);
+
+    await jobs.update(job.$id, { savedBy: updatedSavedBy });
+    toast.success("Job removed from saved");
+    router.push(`/jobs/user/${user.current.$id}`)
+}
 
 
 onMounted(async () => {
@@ -125,6 +139,13 @@ onMounted(async () => {
                         <button @click="deleteJob"
                             class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
                             Delete Job
+                        </button>
+                    </div>
+                    <div v-else-if="job.savedBy.includes(user.current.$id)"
+                        class="bg-white p-6 rounded-lg shadow-md mt-6">
+                        <button @click="removeJobFromSaved(job)"
+                            class="bg-red-500 hover:bg-emerald-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
+                            Remove Job from List
                         </button>
                     </div>
                     <div v-else class="bg-white p-6 rounded-lg shadow-md mt-6">

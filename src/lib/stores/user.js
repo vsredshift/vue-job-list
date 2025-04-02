@@ -12,14 +12,19 @@ export const user = reactive({
     }
   },
   async register(email, password, fullname, role, company = null) {
-    console.log(email, password, fullname, role);
-    await account.create(ID.unique(), email, password, fullname);
-    await this.login(email, password);
-    await account.updatePrefs({ role });
-    if (role !== "developer") {
-      await account.updatePrefs({ company });
+    try {
+      console.log(email, password, fullname, role);
+      await account.create(ID.unique(), email, password, fullname);
+      await this.login(email, password);
+      await account.updatePrefs({ role });
+      
+      if (role !== "developer") {
+        await account.updatePrefs({ company });
+      }
+    } catch (error) {
+      console.error("Error registring user", error)
+      throw error
     }
-
   },
   async login(email, password) {
     await account.createEmailPasswordSession(email, password);

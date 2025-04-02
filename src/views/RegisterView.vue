@@ -82,11 +82,15 @@ const validateForm = () => {
     return !errorMessage.value;
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
     if (validateForm()) {
-        user.register(email.value, password.value, fullName.value, role.value)
-        if (role.value !== "developer") {
-            companies.add({ name: companyName.value, description: companyDescription.value, contactEmail: companyEmail.value, contactPhone: companyPhone.value })
+        try {
+            await user.register(email.value, password.value, fullName.value, role.value)
+            if (role.value !== "developer") {
+                await companies.add({ name: companyName.value, description: companyDescription.value, contactEmail: companyEmail.value, contactPhone: companyPhone.value, users: [user.current.$id] })
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message || "An error occurred during registration.");
         }
     } else {
         toast.error(errorMessage.value)

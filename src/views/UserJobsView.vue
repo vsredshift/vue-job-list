@@ -13,8 +13,14 @@ const fetchSavedJobs = async () => {
     if (!user.current) return;
 
     try {
-        const response = await jobs.getUserJobs([Query.contains("savedBy", user.current.$id)])
-        savedJobs.value = response.documents;
+        if (user.current.prefs.role === "developer") {
+            const response = await jobs.getUserJobs([Query.contains("savedBy", user.current.$id)])
+            savedJobs.value = response.documents;
+        } else {
+            await jobs.init()
+            const companyIds = user.current?.prefs.company ? user.current?.prefs.company.split(',') : [];
+            savedJobs.value = jobs.current.filter(doc => companyIds.includes(doc.company))
+        }
     } catch (error) {
         console.error("Error fetching saved jobs:", error);
     }

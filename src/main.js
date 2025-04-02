@@ -7,4 +7,7 @@ import router from "./router";
 import { createApp } from "vue";
 import App from "./App.vue";
 
-createApp(App).use(router).use(Toast).mount("#app");
+createApp(App)
+  .use(router)
+  .use(Toast, { timeout: 2000, transition: "Vue-Toastification__slideBlurred" })
+  .mount("#app");

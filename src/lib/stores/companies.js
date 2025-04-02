@@ -32,7 +32,6 @@ export const companies = reactive({
       company
     );
     this.current = [response, ...this.current];
-    console.log(company);
   },
   async remove(id) {
     await databases.deleteDocument(
