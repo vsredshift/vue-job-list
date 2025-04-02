@@ -1,7 +1,6 @@
 import { reactive } from "vue";
 import { databases } from "../appwrite";
 import { ID, Query } from "appwrite";
-import { companies } from "./companies";
 
 export const JOBS_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_JOBS;
 export const JOBS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_JOBS;
@@ -17,12 +16,12 @@ export const jobs = reactive({
     this.current = response.documents;
   },
   async findOne(id) {
-      const response = await databases.getDocument(
-        JOBS_DATABASE_ID,
-        JOBS_COLLECTION_ID,
-        id,
-      );
-      return response;
+    const response = await databases.getDocument(
+      JOBS_DATABASE_ID,
+      JOBS_COLLECTION_ID,
+      id
+    );
+    return response;
   },
   async add(job) {
     const response = await databases.createDocument(
@@ -49,5 +48,12 @@ export const jobs = reactive({
     if (index !== -1) {
       this.current[index] = response;
     }
+  },
+  async getUserJobs(query) {
+    return await databases.listDocuments(
+      JOBS_DATABASE_ID,
+      JOBS_COLLECTION_ID,
+      query
+    );
   },
 });

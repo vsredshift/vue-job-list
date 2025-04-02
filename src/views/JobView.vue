@@ -36,6 +36,18 @@ const deleteJob = async () => {
     }
 }
 
+const handleSaveJob = async (job) => {
+  if (!user.current) {
+    console.error("User not logged in");
+    return;
+  }
+  const updatedSavedBy = job.savedBy ? [...new Set([...job.savedBy, user.current.$id])] : [user.current.$id];
+
+  jobs.update(jobId, { savedBy: updatedSavedBy });
+  toast.success("Job saved")
+};
+
+
 onMounted(async () => {
     try {
         job.value = await jobs.findOne(jobId)
@@ -114,6 +126,13 @@ onMounted(async () => {
                             class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
                             Delete Job
                         </button>
+                    </div>
+                    <div v-else class="bg-white p-6 rounded-lg shadow-md mt-6">
+                        <button @click="handleSaveJob(job)"
+                            class="bg-emerald-500 hover:bg-emerald-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
+                            Save Job
+                        </button>
+
                     </div>
                 </aside>
             </div>
