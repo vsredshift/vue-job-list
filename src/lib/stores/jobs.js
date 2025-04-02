@@ -1,6 +1,6 @@
 import { reactive } from "vue";
-import { databases } from "../appwrite";
-import { ID, Query } from "appwrite";
+import { account, databases } from "../appwrite";
+import { ID, Permission, Query, Role } from "appwrite";
 
 export const JOBS_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_JOBS;
 export const JOBS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_JOBS;
@@ -24,13 +24,26 @@ export const jobs = reactive({
     return response;
   },
   async add(job) {
+    const user = await account.get();
+    const userRole = user.prefs?.role;
+  
+    if (!['employer', 'admin'].includes(userRole)) {
+      throw new Error('Only employers and admins can create jobs');
+    }
+    const permissions = [
+      Permission.read(Role.user(user.$id)),
+      Permission.write(Role.user(user.$id)),
+    ];
+
     const response = await databases.createDocument(
       JOBS_DATABASE_ID,
       JOBS_COLLECTION_ID,
       ID.unique(),
-      job
+      job,
+      permissions
     );
     this.current = [response, ...this.current];
+    return response.$id
   },
   async remove(id) {
     await databases.deleteDocument(JOBS_DATABASE_ID, JOBS_COLLECTION_ID, id);

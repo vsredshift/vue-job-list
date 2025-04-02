@@ -1,8 +1,12 @@
 <script setup>
+import { companies } from '@/lib/stores/companies';
+import { jobs } from '@/lib/stores/jobs';
+import { user } from '@/lib/stores/user';
 import router from '@/router';
-import axios from 'axios';
-import { reactive } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 const form = reactive({
     type: "Full-Time",
@@ -10,16 +14,27 @@ const form = reactive({
     description: "",
     salary: "$70K - $80K",
     location: "",
-    company: {
-        name: "",
-        description: "",
-        contactEmail: "",
-        contactPhone: "",
-    }
+    company: ""
 })
 
-const toast = useToast();
+const userCompanies = reactive([])
 
+const fetchUserCompanies = async () => {
+    try {
+        await companies.init()
+        if (user.current?.prefs.role === "admin") {
+            userCompanies.splice(0, userCompanies.length, ...companies.current)
+        }
+        else if (user.current?.prefs.role === "employer") {
+            const companyIds = user.current?.prefs.company ? user.current?.prefs.company.split(',') : [];
+            const documents = companies.current.filter(doc => companyIds.includes(doc.$id))            
+            userCompanies.splice(0, userCompanies.length, ...documents)
+        }
+    } catch (error) {
+        console.error("Error getting companies", error)
+    }
+
+}
 const handleSubmit = async () => {
     const newJob = {
         type: form.type,
@@ -27,23 +42,20 @@ const handleSubmit = async () => {
         description: form.description,
         salary: form.salary,
         location: form.location,
-        company: {
-            name: form.company.name,
-            description: form.company.description,
-            contactEmail: form.company.contactEmail,
-            contactPhone: form.company.contactPhone,
-        }
+        company: form.company,
     }
 
     try {
-        const response = await axios.post("/api/jobs", newJob)
+        const response = await jobs.add(newJob)
         toast.success("Job added successfully")
-        router.push(`/jobs/${response.data.id}`)
+        router.push(`/jobs/${response}`)
     } catch (error) {
         console.error("Error adding job listing", error)
         toast.error("Something went wrong adding job")
     }
 }
+
+onMounted(fetchUserCompanies)
 </script>
 
 <template>
@@ -67,7 +79,7 @@ const handleSubmit = async () => {
                     <div class="mb-4">
                         <label class="block text-gray-700 font-bold mb-2">Job Listing Name</label>
                         <input v-model="form.title" type="text" id="name" name="name"
-                            class="border rounded w-full py-2 px-3 mb-2" placeholder="eg. Beautiful Apartment In Miami"
+                            class="border rounded w-full py-2 px-3 mb-2" placeholder="eg. Full-stack Vue Developer"
                             required />
                     </div>
                     <div class="mb-4">
@@ -103,32 +115,14 @@ const handleSubmit = async () => {
                             class="border rounded w-full py-2 px-3 mb-2" placeholder="Company Location" required />
                     </div>
 
-                    <h3 class="text-2xl mb-5">Company Info</h3>
-
                     <div class="mb-4">
-                        <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
-                        <input v-model="form.company.name" type="text" id="company" name="company"
-                            class="border rounded w-full py-2 px-3" placeholder="Company Name" />
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="company_description" class="block text-gray-700 font-bold mb-2">Company
-                            Description</label>
-                        <textarea v-model="form.company.description" id="company_description" name="company_description"
-                            class="border rounded w-full py-2 px-3" rows="4"
-                            placeholder="What does your company do?"></textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="contact_email" class="block text-gray-700 font-bold mb-2">Contact Email</label>
-                        <input v-model="form.company.contactEmail" type="email" id="contact_email" name="contact_email"
-                            class="border rounded w-full py-2 px-3" placeholder="Email address for applicants"
-                            required />
-                    </div>
-                    <div class="mb-4">
-                        <label for="contact_phone" class="block text-gray-700 font-bold mb-2">Contact Phone</label>
-                        <input v-model="form.company.contactPhone" type="tel" id="contact_phone" name="contact_phone"
-                            class="border rounded w-full py-2 px-3" placeholder="Optional phone for applicants" />
+                        <label for="company" class="block text-gray-700 font-bold mb-2">Company</label>
+                        <select v-model="form.company" id="company" name="company"
+                            class="border rounded w-full py-2 px-3" required>
+                            <option v-for="company in userCompanies" :key="company.$id" :value="company.$id">
+                                {{ company.name }}
+                            </option>
+                        </select>
                     </div>
 
                     <div>
