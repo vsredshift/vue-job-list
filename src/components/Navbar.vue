@@ -44,6 +44,13 @@ const isEmployer = computed(() => user.current?.prefs.role === "employer");
                                 'px-3', 'py-2', 'rounded-md'
                             ]">Jobs
                             </RouterLink>
+                            <RouterLink v-if="user.current" :to="`/jobs/user/${user.current.$id}`" :class="[isActiveLink(`/jobs/user/${user.current.$id}`)
+                                ? 'bg-emerald-900'
+                                : 'hover:bg-gray-900 hover:text-white',
+                                'text-white',
+                                'px-3', 'py-2', 'rounded-md'
+                            ]">My Jobs
+                            </RouterLink>
                             <RouterLink v-if="isEmployer || isAdmin" to="/jobs/add" :class="[isActiveLink('/jobs/add')
                                 ? 'bg-emerald-900'
                                 : 'hover:bg-gray-900 hover:text-white',

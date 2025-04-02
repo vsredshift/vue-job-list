@@ -9,6 +9,7 @@ import RegisterView from "@/views/RegisterView.vue";
 import LoginView from "@/views/LoginView.vue";
 import { account } from "@/lib/appwrite";
 import UnauthorizedView from "@/views/UnauthorizedView.vue";
+import UserJobsView from "@/views/UserJobsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +49,11 @@ const router = createRouter({
       path: "/jobs/edit/:id",
       name: "edit-job",
       component: EditJobView,
+    },
+    {
+      path: "/jobs/user/:id",
+      name: "saved-jobs",
+      component: UserJobsView,
     },
     {
       path: "/not-authorised",

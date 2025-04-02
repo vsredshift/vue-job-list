@@ -1,6 +1,7 @@
 <script setup>
+import { companies } from '@/lib/stores/companies';
 import { user } from '@/lib/stores/user';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
@@ -26,6 +27,9 @@ const toast = useToast()
 const router = useRouter()
 
 const mockCompanies = ["Company A", "Company B", "Company C"]
+const filteredCompanies = computed(() => {
+    return companyName.value ? mockCompanies.filter(c => c.toLowerCase().includes(companyName.value.toLowerCase())) : []
+})
 
 watch(role, (newType) => {
     if (newType === "developer") {
@@ -35,25 +39,32 @@ watch(role, (newType) => {
     }
 })
 
-const checkCompanyExists = async () => {
-    isLoading.value = true;
-    setTimeout(() => {
-        if (mockCompanies.includes(companyName.value)) {
-            companyExists.value = true
-            companyErrorMessage.value = ""
-        } else {
-            companyExists.value = false
-            companyErrorMessage.value = "Company not found. Would you like to register a new company?"
-        }
-        isLoading.value = false;
-    }, 1000);
+const checkCompanyExists = () => {
+    if (mockCompanies.includes(companyName.value)) {
+        companyExists.value = true
+        companyErrorMessage.value = ""
+    } else {
+        companyExists.value = false
+        companyErrorMessage.value = "Company not found. Would you like to register a new company?"
+    }
+    isLoading.value = false;
 };
 
 const registerNewCompany = () => {
+    if (mockCompanies.includes(companyName.value)) {
+        companyErrorMessage.value = "Company name already exists.";
+        return;
+    }
     isCompanyRegistered.value = true;
     companyExists.value = true;
     companyErrorMessage.value = '';
 };
+
+const resetCompanySearch = () => {
+    companyName.value = ""
+    isCompanyRegistered.value = false
+    companyExists.value = false
+}
 
 const validateForm = () => {
     errorMessage.value = ""
@@ -65,8 +76,8 @@ const validateForm = () => {
         errorMessage.value = "Password must be at least 6 characters long.";
     } else if (password.value !== confirmPassword.value) {
         errorMessage.value = "Passwords do not match.";
-    } else if (role.value === 'recruiter' && !companyName.value.trim()) {
-        errorMessage.value = "Company Name is required for recruiters.";
+    } else if (role.value === 'employer' && !companyName.value.trim()) {
+        errorMessage.value = "Company Name is required for employers.";
     }
     return !errorMessage.value;
 }
@@ -74,6 +85,9 @@ const validateForm = () => {
 const handleSubmit = () => {
     if (validateForm()) {
         user.register(email.value, password.value, fullName.value, role.value)
+        if (role.value !== "developer") {
+            companies.add({ name: companyName.value, description: companyDescription.value, contactEmail: companyEmail.value, contactPhone: companyPhone.value })
+        }
     } else {
         toast.error(errorMessage.value)
     }
@@ -92,49 +106,6 @@ const handleSubmit = () => {
                             class="border rounded w-full py-2 px-3 mb-2" required>
                     </div>
                     <div class="mb-4">
-                        <label for="role" class="block text-gray-700 font-bold mb-2">Role</label>
-                        <select v-model="role" id="role" name="role" class="border rounded w-full py-2 px-3"
-                            required>
-                            <option value="developer">Developer</option>
-                            <option value="recruiter">Recruiter</option>
-                        </select>
-                    </div>
-
-
-                    <!-- Recruiter-specific fields -->
-                    <div v-if="role === 'recruiter'" class="mb-4">
-                        <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
-                        <input v-model="companyName" type="text" name="company" id="company" placeholder="Company"
-                            class="border rounded w-full py-2 px-3 mb-2" required>
-                        <p v-if="isLoading" class="text-gray-500 text-sm">Checking company...</p>
-                        <p v-if="companyErrorMessage" class="text-red-500 text-sm">{{ companyErrorMessage }}</p>
-                        <div v-if="companyExists">
-                            <p class=" text-emerald-500 text-sm">{{ companyName }} found</p>
-                        </div>
-                        <div v-if="!companyExists && !isLoading">
-                            <button @click="checkCompanyExists" type="button"
-                                class="bg-blue-500 text-white py-2 px-4 rounded-md mr-2">Fetch Company</button>
-                            <button @click="registerNewCompany" type="button"
-                                class="bg-emerald-500 text-white py-2 px-4 rounded-md">Register New Company</button>
-                        </div>
-                    </div>
-
-                    <!-- Additional fields for new company registration -->
-                    <div v-if="role === 'recruiter' && isCompanyRegistered" class="mb-4">
-                        <label for="companyDescription" class="block text-gray-700 font-bold mb-2">Company
-                            Description</label>
-                        <textarea v-model="companyDescription" id="companyDescription"
-                            placeholder="Describe your company" class="border rounded w-full py-2 px-3 mb-2"></textarea>
-                        <label for="companyEmail" class="block text-gray-700 font-bold mb-2">Company Email</label>
-                        <input v-model="companyEmail" type="email" id="companyEmail" placeholder="Company Email"
-                            class="border rounded w-full py-2 px-3 mb-2" required>
-                        <label for="companyPhone" class="block text-gray-700 font-bold mb-2">Company Phone</label>
-                        <input v-model="companyPhone" type="text" id="companyPhone" placeholder="Company Phone"
-                            class="border rounded w-full py-2 px-3 mb-2" required>
-                    </div>
-
-
-                    <div class="mb-4">
                         <label for="email" class="block text-gray-700 font-bold mb-2">Email</label>
                         <input v-model="email" type="email" name="email" id="email" placeholder="Email"
                             class="border rounded w-full py-2 px-3 mb-2" required>
@@ -147,8 +118,58 @@ const handleSubmit = () => {
                     <div class="mb-4">
                         <label for="confirmPassword" class="block text-gray-700 font-bold mb-2">Confirm Password</label>
                         <input v-model="confirmPassword" type="password" name="confirmPassword" id="confirmPassword"
-                            placeholder="ConfirmPassword" class="border rounded w-full py-2 px-3 mb-2" required>
+                            placeholder="Confirm Password" class="border rounded w-full py-2 px-3 mb-2" required>
                     </div>
+
+                    <div class="mb-4">
+                        <label for="role" class="block text-gray-700 font-bold mb-2">Role</label>
+                        <select v-model="role" id="role" name="role" class="border rounded w-full py-2 px-3" required>
+                            <option value="developer">Developer</option>
+                            <option value="employer">Employer</option>
+                        </select>
+                    </div>
+
+
+                    <!-- employer-specific fields -->
+                    <div v-if="role === 'employer'" class="mb-4">
+                        <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
+                        <input v-model="companyName" type="text" name="company" id="company" placeholder="Company"
+                            class="border rounded w-full py-2 px-3 mb-2" required>
+                        <ul v-if="filteredCompanies.length && !filteredCompanies.includes(companyName)"
+                            class="bg-white border rounded mt-2">
+                            <li v-for="(company, index) in filteredCompanies" :key="index"
+                                @click="companyName = company; checkCompanyExists()"
+                                class="p-2 cursor-pointer hover:bg-gray-200">{{ company }}</li>
+                        </ul>
+                        <p v-if="companyErrorMessage" class="text-red-500 text-sm">{{ companyErrorMessage }}</p>
+                        <div v-if="!companyExists && !isLoading || !companyName.length">
+                            <button @click="checkCompanyExists" type="button"
+                                class="bg-blue-500 text-white py-2 px-4 rounded-md mr-2">Fetch Company</button>
+                            <button @click="registerNewCompany" type="button"
+                                class="bg-emerald-500 text-white py-2 px-4 rounded-md">Register New Company</button>
+                        </div>
+                    </div>
+
+                    <!-- Additional fields for new company registration -->
+                    <div v-if="role === 'employer' && isCompanyRegistered" class="mb-4">
+                        <label for="companyDescription" class="block text-gray-700 font-bold mb-2">Company
+                            Description</label>
+                        <textarea v-model="companyDescription" id="companyDescription"
+                            placeholder="Describe your company" class="border rounded w-full py-2 px-3 mb-2"></textarea>
+                        <label for="companyEmail" class="block text-gray-700 font-bold mb-2">Company Email</label>
+                        <input v-model="companyEmail" type="email" id="companyEmail" placeholder="Company Email"
+                            class="border rounded w-full py-2 px-3 mb-2" required>
+                        <label for="companyPhone" class="block text-gray-700 font-bold mb-2">Company Phone</label>
+                        <input v-model="companyPhone" type="text" id="companyPhone" placeholder="Company Phone"
+                            class="border rounded w-full py-2 px-3 mb-2" required>
+                    </div>
+                    <div v-if="isCompanyRegistered">
+                        <button @click="resetCompanySearch" type="button"
+                            class="bg-red-500 text-white py-2 px-4 rounded-md mt-2 mb-2">Cancel Company
+                            Registration</button>
+                    </div>
+
+
                     <div>
                         <button
                             class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline"
@@ -159,11 +180,11 @@ const handleSubmit = () => {
                 </form>
 
                 <p class="mt-3">
-                Already have an account?
-                <RouterLink to="/login" class="text-blue-500">
-                  Login
-                </RouterLink>
-              </p>
+                    Already have an account?
+                    <RouterLink to="/login" class="text-blue-500">
+                        Login
+                    </RouterLink>
+                </p>
             </div>
         </div>
     </section>

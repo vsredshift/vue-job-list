@@ -11,10 +11,15 @@ export const user = reactive({
       this.current = null;
     }
   },
-  async register(email, password, fullname, role) {
-    // await account.create(ID.unique(), email, password, fullname, { role });
-    // await this.login(email, password);
-    console.log(email, password, fullname, role)
+  async register(email, password, fullname, role, company = null) {
+    console.log(email, password, fullname, role);
+    await account.create(ID.unique(), email, password, fullname);
+    await this.login(email, password);
+    await account.updatePrefs({ role });
+    if (role !== "developer") {
+      await account.updatePrefs({ company });
+    }
+
   },
   async login(email, password) {
     await account.createEmailPasswordSession(email, password);
