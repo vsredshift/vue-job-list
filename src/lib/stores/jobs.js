@@ -5,6 +5,8 @@ import { ID, Permission, Query, Role } from "appwrite";
 export const JOBS_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_JOBS;
 export const JOBS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_JOBS;
 
+const user = await account.get();
+
 export const jobs = reactive({
   current: [],
   async init() {
@@ -24,11 +26,10 @@ export const jobs = reactive({
     return response;
   },
   async add(job) {
-    const user = await account.get();
     const userRole = user.prefs?.role;
-  
-    if (!['employer', 'admin'].includes(userRole)) {
-      throw new Error('Only employers and admins can create jobs');
+
+    if (!["employer", "admin"].includes(userRole)) {
+      throw new Error("Only employers and admins can create jobs");
     }
     const permissions = [
       Permission.read(Role.user(user.$id)),
@@ -43,10 +44,12 @@ export const jobs = reactive({
       permissions
     );
     this.current = [response, ...this.current];
-    return response.$id
+    return response.$id;
   },
   async remove(id) {
-    await databases.deleteDocument(JOBS_DATABASE_ID, JOBS_COLLECTION_ID, id);
+    await databases.deleteDocument(JOBS_DATABASE_ID, JOBS_COLLECTION_ID, id, [
+      Permission.delete(Role.user(user.$id)),
+    ]);
     this.current = this.current.filter((job) => job.$id !== id);
     await this.init();
   },
@@ -61,6 +64,7 @@ export const jobs = reactive({
     if (index !== -1) {
       this.current[index] = response;
     }
+    return response.$id;
   },
   async getUserJobs(query) {
     return await databases.listDocuments(

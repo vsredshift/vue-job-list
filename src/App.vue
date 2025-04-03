@@ -5,8 +5,8 @@ import Footer from "./components/Footer.vue";
 import { onMounted, provide } from "vue";
 import { user } from "./lib/stores/user";
 
-onMounted(() => {
-  user.init()
+onMounted(async () => {
+  await user.init()
 })
 
 provide("user", user)

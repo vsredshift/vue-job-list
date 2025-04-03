@@ -27,7 +27,7 @@ const fetchUserCompanies = async () => {
         }
         else if (user.current?.prefs.role === "employer") {
             const companyIds = user.current?.prefs.company ? user.current?.prefs.company.split(',') : [];
-            const documents = companies.current.filter(doc => companyIds.includes(doc.$id))            
+            const documents = companies.current.filter(doc => companyIds.includes(doc.$id))
             userCompanies.splice(0, userCompanies.length, ...documents)
         }
     } catch (error) {
@@ -133,8 +133,13 @@ onMounted(fetchUserCompanies)
                         </button>
                     </div>
                 </form>
+                <p class="mt-3">
+                    Want to post a job with a different company?
+                    <RouterLink to="/register" class="text-blue-500">
+                        Register a new company
+                    </RouterLink>
+                </p>
             </div>
         </div>
     </section>
-
 </template>

@@ -27,7 +27,7 @@ const deleteJob = async () => {
         if (confirm) {
             await jobs.remove(jobId)
             toast.success("Job deleted")
-            router.push("/jobs")
+            router.push(`/jobs/user/${user.current.$id}`)
         }
     }
     catch (error) {
@@ -39,6 +39,7 @@ const deleteJob = async () => {
 const handleSaveJob = async (job) => {
     if (!user.current) {
         console.error("User not logged in");
+        toast.error("You must be logged in to save a job listing")
         return;
     }
     const updatedSavedBy = job.savedBy ? [...new Set([...job.savedBy, user.current.$id])] : [user.current.$id];
@@ -87,7 +88,7 @@ onMounted(async () => {
                             <i class="pi pi-map-marker text-amber-700 mr-2"></i>
                             <p class=" text-amber-700">{{ job.location }}</p>
                         </div>
-                    </div>
+                    </div>                    
 
                     <div class="bg-white p-6 rounded-lg shadow-md mt-6">
                         <h3 class=" text-emerald-800 text-lg font-bold mb-6">
@@ -141,7 +142,7 @@ onMounted(async () => {
                             Delete Job
                         </button>
                     </div>
-                    <div v-else-if="job.savedBy.includes(user.current.$id)"
+                    <div v-else-if="job.savedBy.includes(user.current?.$id)"
                         class="bg-white p-6 rounded-lg shadow-md mt-6">
                         <button @click="removeJobFromSaved(job)"
                             class="bg-red-500 hover:bg-emerald-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">

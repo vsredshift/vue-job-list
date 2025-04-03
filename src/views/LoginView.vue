@@ -2,17 +2,27 @@
 import { ref } from 'vue';
 import { user } from '@/lib/stores/user';
 import { RouterLink } from 'vue-router';
+import { useToast } from 'vue-toastification';
 
 const email = ref("")
 const password = ref("")
 
+const toast = useToast();
+
+const handleLogin = async (email, password) => {
+    try {
+        await user.login(email, password)
+    } catch (error) {
+        toast.error("Invalid credentials")
+    }
+}
 </script>
 
 <template>
    <section class="bg-emerald-50">
-        <div class="container m-auto max-w-2xl py-24">
+        <div class="container m-auto max-w-2xl py-24 min-h-[calc(100vh-140px)]">
             <div class="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
-                <form @submit.prevent="user.login(email, password)">
+                <form @submit.prevent="handleLogin(email, password)">
                     <h2 class="text-3xl text-center font-semibold mb-6">Login</h2>
 
                     <div class="mb-4">
