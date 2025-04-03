@@ -5,7 +5,6 @@ import { ID, Permission, Query, Role } from "appwrite";
 export const JOBS_DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_JOBS;
 export const JOBS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_JOBS;
 
-const user = await account.get();
 
 export const jobs = reactive({
   current: [],
@@ -26,8 +25,9 @@ export const jobs = reactive({
     return response;
   },
   async add(job) {
+    const user = await account.get();
     const userRole = user.prefs?.role;
-
+    
     if (!["employer", "admin"].includes(userRole)) {
       throw new Error("Only employers and admins can create jobs");
     }
@@ -35,7 +35,7 @@ export const jobs = reactive({
       Permission.read(Role.user(user.$id)),
       Permission.write(Role.user(user.$id)),
     ];
-
+    
     const response = await databases.createDocument(
       JOBS_DATABASE_ID,
       JOBS_COLLECTION_ID,
@@ -47,6 +47,7 @@ export const jobs = reactive({
     return response.$id;
   },
   async remove(id) {
+    const user = await account.get();
     await databases.deleteDocument(JOBS_DATABASE_ID, JOBS_COLLECTION_ID, id, [
       Permission.delete(Role.user(user.$id)),
     ]);

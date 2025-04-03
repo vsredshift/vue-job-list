@@ -20,6 +20,8 @@ const form = reactive({
 const userCompanies = reactive([])
 
 const fetchUserCompanies = async () => {
+    if (!user.current) return;
+    
     try {
         await companies.init()
         if (user.current?.prefs.role === "admin") {

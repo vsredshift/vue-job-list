@@ -13,7 +13,6 @@ export const user = reactive({
   },
   async register(email, password, fullname, role, company = null) {
     try {
-      console.log(email, password, fullname, role);
       await account.create(ID.unique(), email, password, fullname);
       await this.login(email, password);
       await account.updatePrefs({ role });

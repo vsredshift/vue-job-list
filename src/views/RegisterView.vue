@@ -13,12 +13,13 @@ const role = ref("developer")
 
 // Company
 const companyName = ref("")
-const selectedCompany = ref(null)
-const companyExists = ref(false)
-const isNewCompany = ref(false)
 const companyDescription = ref("")
 const companyEmail = ref("")
 const companyPhone = ref("")
+
+const selectedCompany = ref(null)
+const companyExists = ref(false)
+const isNewCompany = ref(false)
 
 // Message
 const errorMessage = ref("")
@@ -34,55 +35,96 @@ watch(role, (newType) => {
     if (newType === "developer") {
         selectedCompany.value = null
         companyExists.value = false
-        isCompanyRegistered.value = false
+        isNewCompany.value = false
     }
 })
 
+watch(companyName, (newVal) => {
+    if (!newVal.trim()) {
+        companyErrorMessage.value = "";
+        companyExists.value = false;
+        selectedCompany.value = null;
+        return;
+    }
+
+    if (selectedCompany.value && selectedCompany.value.name !== newVal) {
+        selectedCompany.value = null;
+        companyExists.value = false;
+    }
+    
+    const match = companies.current.find(company => company.name.toLowerCase() === newVal.toLowerCase());
+
+    if (match) {
+        checkCompanyExists()
+        companyExists.value = true;
+        companyErrorMessage.value = "";
+    } else {
+        companyExists.value = false;
+        companyErrorMessage.value = "Company not found. Would you like to register a new company?";
+    }
+
+})
+
+
 const checkCompanyExists = () => {
-    if (companies.current.filter(company => company.name === companyName.value)) {
+    const company = companies.current.filter(company => company.name === companyName.value)
+    if (company) {
         companyExists.value = true
         companyErrorMessage.value = ""
         isNewCompany.value = false
+        selectedCompany.value = company[0].$id
     } else {
         companyExists.value = false
+        selectedCompany.value = false
         companyErrorMessage.value = "Company not found. Would you like to register a new company?"
     }
     isLoading.value = false;
 };
 
-const registerIsNewCompany = () => {
-    console.log(companyName.value)
-    if (companyName.value.trim() === "") {
-        companyErrorMessage.value = "You must provide a company name"
-        return;
-    }
-    if (companies.current.filter(company => company.name === companyName.value)) {
-        companyErrorMessage.value = "Company name already exists.";
-        return;
-    }
-    isCompanyRegistered.value = true;
-    companyExists.value = true;
-    companyErrorMessage.value = '';
-};
-
-const resetCompanySearch = () => {
-    companyName.value = ""
-    isCompanyRegistered.value = false
-    companyExists.value = false
-}
-
 const validateForm = () => {
     errorMessage.value = ""
     if (!fullName.value.trim()) {
         errorMessage.value = "Full Name is required.";
-    } else if (!email.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        return;
+    }
+    if (!email.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
         errorMessage.value = "Invalid email format.";
-    } else if (password.value.length < 6) {
+        return;
+    }
+    if (password.value.length < 6) {
         errorMessage.value = "Password must be at least 6 characters long.";
-    } else if (password.value !== confirmPassword.value) {
+        return;
+    }
+    if (password.value !== confirmPassword.value) {
         errorMessage.value = "Passwords do not match.";
-    } else if (role.value === 'employer' && !companyName.value.trim()) {
-        errorMessage.value = "Company Name is required for employers.";
+        return;
+    }
+    if (role.value === 'employer') {
+        if (!companyName.value.trim()) {
+            errorMessage.value = "Company Name is required for employers.";
+            return;
+        }
+        if (!isNewCompany.value && !companyExists.value) {
+            errorMessage.value = "Company not found";
+            companyErrorMessage.value = "Company not found. Would you like to register a new company?"
+            return;
+        }
+        if (isNewCompany.value && companyExists.value) {
+            errorMessage.value = "Company already exists";
+            return;
+        }
+        if (isNewCompany.value && !companyDescription.value.trim()) {
+            errorMessage.value = "Company description is required.";
+            return;
+        }
+        if (isNewCompany.value && !companyEmail.value.trim()) {
+            errorMessage.value = "Company email is required.";
+            return;
+        }
+        if (isNewCompany.value && !companyPhone.value.trim()) {
+            errorMessage.value = "Company phone is required.";
+            return;
+        }
     }
     return !errorMessage.value;
 }
@@ -90,10 +132,12 @@ const validateForm = () => {
 const handleSubmit = async () => {
     if (validateForm()) {
         try {
-            await user.register(email.value, password.value, fullName.value, role.value)
-            if (role.value !== "developer") {
-                await companies.add({ name: companyName.value, description: companyDescription.value, contactEmail: companyEmail.value, contactPhone: companyPhone.value, users: [user.current.$id] })
-            }
+            // await user.register(email.value, password.value, fullName.value, role.value, companyName.value)
+            console.log(email.value, password.value, fullName.value, role.value, selectedCompany.value, companyName.value)
+            // if (role.value !== "developer") {
+            //     console.log(user.current)
+            //     await companies.add({ name: companyName.value, description: companyDescription.value, contactEmail: companyEmail.value, contactPhone: companyPhone.value, users: [user.current.$id] })
+            // }
         } catch (error) {
             toast.error(error.response?.data?.message || error.message || "An error occurred during registration.");
         }
@@ -145,28 +189,34 @@ onMounted(async () => {
 
                     <!-- employer-specific fields -->
                     <div v-if="role === 'employer'" class="mb-4">
-                        <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
-                        <input v-model="companyName" type="text" name="company" id="company" placeholder="Search for existing company"
+                        <div class="flex justify-between items-center">
+                            <label for="company" class="block text-gray-700 font-bold mb-2">Company Name</label>
+                            <button @click="isNewCompany = !isNewCompany" type="button"
+                                class="bg-transparent font-semibold hover:text-white py-1 px-3 mb-2 border hover:border-transparent rounded"
+                                :class="isNewCompany ? 'hover:bg-red-500 text-red-700 border-red-500' : 'hover:bg-emerald-500 text-emerald-700 border-emerald-500'">
+                                {{ isNewCompany ? "Cancel" : "Register New Company" }}
+                            </button>
+                        </div>
+
+                        <input v-model="companyName" type="text" name="company" id="company"
+                            :placeholder="isNewCompany ? 'Enter Company Name' : 'Search for existing company'"
                             class="border rounded w-full py-2 px-3 mb-2" required>
-                        <ul v-if="filteredCompanies.length && !filteredCompanies.includes(companyName)"
-                            class="bg-white border rounded mt-2">
+
+                        <ul v-if="filteredCompanies.length && !selectedCompany && !isNewCompany" class="bg-white border rounded mt-2">
                             <li v-for="(company, index) in filteredCompanies" :key="index"
                                 @click="companyName = company.name; checkCompanyExists()"
                                 class="p-2 cursor-pointer hover:bg-gray-200">{{ company.name }}
                             </li>
                         </ul>
-                        <p v-if="companyErrorMessage" class="text-red-500 text-sm">{{ companyErrorMessage }}</p>
-                        <div v-if="!isLoading && !companyExists || !companyName.length || !isNewCompany">
-                            <button @click="isNewCompany = true" type="button" class="bg-transparent hover:bg-emerald-500 text-emerald-700 font-semibold hover:text-white py-2 px-4 border border-emerald-500 hover:border-transparent rounded">Register New
-                                Company</button>
-                        </div>
+                        <p v-if="companyErrorMessage && !isNewCompany" class="text-red-500 text-sm">{{ companyErrorMessage }}</p>
                     </div>
 
 
 
                     <!-- Additional fields for new company registration -->
                     <div v-if="role === 'employer' && isNewCompany" class="mb-4">
-                        <label for="companyDescription" class="block text-gray-700 font-bold mb-2">'Company Description</label>
+                        <label for="companyDescription" class="block text-gray-700 font-bold mb-2">Company
+                            Description</label>
                         <textarea v-model="companyDescription" id="companyDescription"
                             placeholder="Describe your company" class="border rounded w-full py-2 px-3 mb-2">
                         </textarea>
@@ -179,13 +229,6 @@ onMounted(async () => {
                         <input v-model="companyPhone" type="text" id="companyPhone" placeholder="Company Phone"
                             class="border rounded w-full py-2 px-3 mb-2" required>
                     </div>
-
-                    <div v-if="isNewCompany">
-                        <button @click="resetCompanySearch" type="button"
-                            class="bg-red-500 text-white py-2 px-4 rounded-md mt-2 mb-2">Cancel Company
-                            Registration</button>
-                    </div>
-
 
                     <div>
                         <button
