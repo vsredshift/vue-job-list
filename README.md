@@ -58,6 +58,7 @@ VITE_APPWRITE_API_KEY=<api-key>
 > **Note:** The API key should have the necessary permissions to interact with the `jobs` and `companies` collections.
 
 ## Contributing
+This project uses as a starting point Brad Traversy's vue crash course.
 If you'd like to contribute, please submit a pull request with a clear description of the changes.
 
 ## License
